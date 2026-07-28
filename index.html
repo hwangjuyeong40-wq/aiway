@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -1678,7 +1679,7 @@ function startFreeCoach(){
 
 // ================= STEP 6: connect the real backend, with automatic fallback =================
 // Change this if the server runs somewhere else (e.g. a deployed URL).
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'https://aiway.onrender.com';
 
 async function analyzePromptViaAPI(category, rawInput, fields, answers){
   const res = await fetch(`${API_BASE_URL}/api/prompt-coach/analyze`, {
