@@ -1,0 +1,18 @@
+{
+  "name": "aiway-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AIWAY Prompt Coach 백엔드 - AI 프로바이더 교체 가능 구조",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.0",
+    "@google/genai": "^2.3.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
