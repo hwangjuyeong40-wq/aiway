@@ -5,6 +5,8 @@ const express = require('express');
 const cors = require('cors');
 
 const promptCoachRoute = require('./routes/promptCoach');
+const authRoute = require('./routes/auth');
+const historyRoute = require('./routes/history');
 const { AI_PROVIDER } = require('./config/aiProvider');
 
 const app = express();
@@ -14,6 +16,8 @@ app.use(express.json({ limit: '200kb' }));
 
 // API
 app.use('/api/prompt-coach', promptCoachRoute);
+app.use('/api/auth', authRoute);
+app.use('/api', historyRoute);
 
 // 프론트엔드(public/) 정적 서빙 — STEP 3 폴더 구조 기준.
 // 지금 당장은 aiway-v8.html을 그대로 public/index.html로 옮기지 않아도,
