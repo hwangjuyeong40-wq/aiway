@@ -10,14 +10,14 @@ const db = require('../db');
 // ── 사용 내역 ────────────────────────────────
 
 // Prompt Coach를 쓸 때마다 자동으로 한 줄 쌓입니다.
-async function saveHistory({ userId, category, rawInput, improvedPrompt, score, scoreBreakdown }) {
+async function saveHistory({ userId, category, rawInput, improvedPrompt, reason, score, scoreBreakdown }) {
   if (!db.isEnabled() || !userId) return null;
   const res = await db.query(
     `INSERT INTO prompt_coach_history
-       (user_id, category, raw_input, improved_prompt, score, score_breakdown)
-     VALUES ($1, $2, $3, $4, $5, $6)
+       (user_id, category, raw_input, improved_prompt, reason, score, score_breakdown)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING id, created_at`,
-    [userId, category || null, rawInput, improvedPrompt, score ?? null, scoreBreakdown || null]
+    [userId, category || null, rawInput, improvedPrompt, reason || null, score ?? null, scoreBreakdown || null]
   );
   return res ? res.rows[0] : null;
 }
@@ -26,7 +26,7 @@ async function saveHistory({ userId, category, rawInput, improvedPrompt, score, 
 async function listHistory(userId, limit = 30) {
   if (!db.isEnabled() || !userId) return [];
   const res = await db.query(
-    `SELECT id, category, raw_input, improved_prompt, score, score_breakdown, created_at
+    `SELECT id, category, raw_input, improved_prompt, reason, score, score_breakdown, created_at
        FROM prompt_coach_history
       WHERE user_id = $1
       ORDER BY created_at DESC
