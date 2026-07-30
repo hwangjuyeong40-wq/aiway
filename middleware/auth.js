@@ -17,7 +17,13 @@ if (!process.env.JWT_SECRET) {
 }
 
 function issueToken(user) {
-  return jwt.sign({ uid: user.id, name: user.name }, JWT_SECRET, { expiresIn: TOKEN_TTL });
+  return jwt.sign({ uid: user.id, name: user.name, role: 'user' }, JWT_SECRET, { expiresIn: TOKEN_TTL });
+}
+
+// 관리자 토큰. role:'admin'을 심어서 일반 사용자 토큰과 구분합니다.
+// uid가 없으므로 -1로 채웁니다 (관리자는 users 테이블의 특정 행이 아니라 환경변수로 관리되는 별도 존재).
+function issueAdminToken(name) {
+  return jwt.sign({ uid: -1, name, role: 'admin' }, JWT_SECRET, { expiresIn: TOKEN_TTL });
 }
 
 // 헤더에서 토큰을 꺼내 검증합니다. 실패하면 null.
@@ -34,7 +40,7 @@ function readToken(req) {
 }
 
 // 라우트 보호용 미들웨어.
-// 통과하면 req.user = {uid, name}이 채워집니다.
+// 통과하면 req.user = {uid, name, role}이 채워집니다.
 function requireAuth(req, res, next) {
   const payload = readToken(req);
   if (!payload) {
@@ -44,4 +50,14 @@ function requireAuth(req, res, next) {
   next();
 }
 
-module.exports = { issueToken, readToken, requireAuth };
+// 관리자 전용 라우트 보호용. 일반 사용자 토큰으로는 통과할 수 없습니다.
+function requireAdmin(req, res, next) {
+  const payload = readToken(req);
+  if (!payload || payload.role !== 'admin') {
+    return res.status(403).json({ error: '관리자만 접근할 수 있습니다.' });
+  }
+  req.user = payload;
+  next();
+}
+
+module.exports = { issueToken, issueAdminToken, readToken, requireAuth, requireAdmin };
