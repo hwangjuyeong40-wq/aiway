@@ -6,7 +6,7 @@
 
 const express = require('express');
 const userStore = require('../services/userStore');
-const { issueToken, requireAuth } = require('../middleware/auth');
+const { issueToken, issueAdminToken, requireAuth } = require('../middleware/auth');
 const db = require('../db');
 
 const router = express.Router();
@@ -25,7 +25,29 @@ function validateCredentials(body) {
   return { name, pin };
 }
 
-// DB가 없으면 회원 기능 자체가 성립하지 않습니다.
+// 관리자 로그인. 일반 회원과 완전히 분리된 별도 체계이며, DB가 아니라
+// 서버 환경변수(ADMIN_NAME, ADMIN_PIN)와 비교합니다 — 관리자는 한 명뿐이라
+// users 테이블에 넣기보다 이쪽이 더 안전합니다(관리자 계정이 DB 유출과 무관해짐).
+// DB 연결 여부와 무관하게 동작해야 하므로, 아래 DB 체크 미들웨어보다 앞에 둡니다.
+router.post('/admin-login', (req, res) => {
+  const v = validateCredentials(req.body);
+  if (v.error) return res.status(400).json({ error: v.error });
+
+  const adminName = process.env.ADMIN_NAME;
+  const adminPin = process.env.ADMIN_PIN;
+  if (!adminName || !adminPin) {
+    return res.status(503).json({ error: '관리자 계정이 아직 설정되지 않았습니다.' });
+  }
+
+  // 보안상 "이름이 틀렸다" / "비밀번호가 틀렸다"를 구분해서 알려주지 않습니다.
+  if (v.name !== adminName || v.pin !== adminPin) {
+    return res.status(401).json({ error: '이름 또는 비밀번호가 맞지 않아요.' });
+  }
+
+  res.json({ token: issueAdminToken(v.name), admin: { name: v.name } });
+});
+
+// DB가 없으면 일반 회원 기능은 성립하지 않습니다 (관리자 로그인은 위에서 이미 처리되어 영향 없음).
 router.use((req, res, next) => {
   if (!db.isEnabled()) {
     return res.status(503).json({ error: '회원 기능이 아직 준비되지 않았습니다.', dbEnabled: false });
