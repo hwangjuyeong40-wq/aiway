@@ -29,11 +29,16 @@ CREATE TABLE IF NOT EXISTS prompt_coach_history (
   category        VARCHAR(50),
   raw_input       TEXT NOT NULL,
   improved_prompt TEXT NOT NULL,
+  -- AI가 "왜 이렇게 고쳤는지" 설명한 문장. 마이페이지 사용 내역에서 함께 보여줍니다.
+  reason          TEXT,
   score           INTEGER,
   -- {clarity, context, output_condition, detail, role} — 각 0~20
   score_breakdown JSONB,
   created_at      TIMESTAMP DEFAULT NOW()
 );
+
+-- 이미 테이블을 만들어 둔 뒤에 reason 컬럼을 추가하는 경우 (기존 DB 마이그레이션):
+--   ALTER TABLE prompt_coach_history ADD COLUMN IF NOT EXISTS reason TEXT;
 
 -- 마이페이지에서 "내 기록을 최신순으로" 조회하는 것이 가장 잦은 질의라,
 -- 그 조합에 맞춰 인덱스를 만들어 둡니다.
