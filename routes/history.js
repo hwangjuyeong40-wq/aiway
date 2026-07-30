@@ -28,7 +28,7 @@ router.use(requireAuth);
 
 // 사용 내역 기록 (Prompt Coach를 쓸 때마다 자동 호출)
 router.post('/history', async (req, res) => {
-  const { category, rawInput, improvedPrompt, score, scoreBreakdown } = req.body || {};
+  const { category, rawInput, improvedPrompt, reason, score, scoreBreakdown } = req.body || {};
   if (typeof rawInput !== 'string' || !rawInput.trim()) {
     return res.status(400).json({ error: 'rawInput이 필요합니다.' });
   }
@@ -41,6 +41,7 @@ router.post('/history', async (req, res) => {
     category,
     rawInput: rawInput.trim(),
     improvedPrompt: improvedPrompt.trim(),
+    reason: typeof reason === 'string' ? reason.trim() : null,
     score: Number.isFinite(Number(score)) ? Number(score) : null,
     scoreBreakdown: scoreBreakdown || null,
   });
