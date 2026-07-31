@@ -299,6 +299,39 @@ footer p.strong{color:var(--ink);font-weight:700;font-size:calc(21px * var(--fs)
 .hist-empty{color:var(--ink-soft);font-size:calc(15.5px * var(--fs));}
 .hist-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
 .hist-del{background:none;border:none;color:var(--red);font-weight:700;font-size:calc(14px * var(--fs));cursor:pointer;padding:4px 6px;}
+
+/* ===== 생활 주제 카드 ===== */
+.topic-picker{margin-top:26px;padding-top:22px;border-top:1.5px dashed var(--line);}
+.topic-picker .tp-title{font-weight:700;font-size:calc(17.5px * var(--fs));margin:0 0 4px;color:var(--ink);}
+.topic-picker .tp-sub{color:var(--ink-soft);font-size:calc(15px * var(--fs));margin:0 0 16px;}
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+.topic-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius-sm);
+  padding:16px 10px;min-height:92px;cursor:pointer;transition:border-color .18s ease,transform .08s ease,background .18s ease;}
+.topic-card:hover{border-color:var(--p0);background:var(--p0-l);}
+.topic-card:active{transform:scale(0.97);}
+.topic-card .tc-icon{font-size:calc(28px * var(--fs));line-height:1;}
+.topic-card .tc-name{font-weight:700;font-size:calc(15px * var(--fs));color:var(--ink);text-align:center;}
+
+.topic-examples{margin-top:4px;}
+.te-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;font-size:calc(16px * var(--fs));color:var(--ink);}
+.te-back{background:none;border:none;color:var(--sky);font-weight:700;font-size:calc(15px * var(--fs));cursor:pointer;padding:4px 6px;}
+.topic-example{display:block;width:100%;text-align:left;background:var(--ivory);border:1.5px solid var(--line);
+  border-radius:var(--radius-sm);padding:15px 18px;margin-bottom:8px;cursor:pointer;
+  font-size:calc(16.5px * var(--fs));color:var(--ink);font-weight:600;transition:border-color .18s ease,background .18s ease,transform .08s ease;}
+.topic-example:hover{border-color:var(--leaf);background:var(--p3-l);}
+.topic-example:active{transform:scale(0.99);}
+.topic-example.te-custom{color:var(--ink-soft);font-weight:600;}
+
+/* ===== 사용 안내 (결과 화면 상단 고정) ===== */
+/* 안내 문구 — 시니어도 놓치지 않도록 진한 노랑으로 명확히 대비를 줍니다 */
+.use-notice{background:#FFE79A;border:2px solid #D4A017;border-left:8px solid #D4A017;
+  border-radius:var(--radius-sm);padding:16px 18px;margin:0 0 18px;
+  box-shadow:0 4px 14px -8px rgba(180,130,0,0.5);}
+.use-notice .un-line{display:flex;align-items:flex-start;gap:10px;margin:0;
+  font-size:calc(16px * var(--fs));line-height:1.65;color:#5A4200;font-weight:700;}
+.use-notice .un-line + .un-line{margin-top:10px;padding-top:10px;border-top:1.5px solid rgba(150,110,0,0.35);}
+.use-notice .un-mark{flex:none;font-size:calc(17px * var(--fs));line-height:1.65;}
 @keyframes loadingSlide{
   0%{transform:translateX(-100%);}
   50%{transform:translateX(140%);}
@@ -613,6 +646,22 @@ footer p.strong{color:var(--ink);font-weight:700;font-size:calc(21px * var(--fs)
         </div>
         <p class="mic-status hidden" id="micStatus"></p>
         <div class="coach-nav"><button class="btn-primary" onclick="startFreeCoach()">✨ 코치 시작하기</button></div>
+
+        <!-- 무엇을 물어볼지 모르는 사용자를 위한 주제 카드 (2단계: 주제 → 예시 질문) -->
+        <div class="topic-picker">
+          <p class="tp-title">무엇을 물어볼지 모르시겠나요?</p>
+          <p class="tp-sub">아래에서 관심 있는 주제를 눌러보세요. 예시 질문을 보여드릴게요.</p>
+          <div class="topic-grid" id="topicGrid"></div>
+
+          <!-- 주제를 고르면 나타나는 예시 질문 목록 -->
+          <div class="topic-examples hidden" id="topicExamples">
+            <div class="te-head">
+              <span id="topicExamplesTitle"></span>
+              <button class="te-back" onclick="closeTopicExamples()">← 다른 주제 보기</button>
+            </div>
+            <div id="topicExamplesList"></div>
+          </div>
+        </div>
       </div>
       <div class="coach-step" id="freeCoachStep2">
         <div class="companion-say"><div class="cs-avatar">🤖</div><div class="cs-text" id="freeCoachStep2Say">몇 가지만 더 여쭤볼게요. 편하게 아는 만큼만 적어주세요.</div></div>
@@ -631,12 +680,17 @@ footer p.strong{color:var(--ink);font-weight:700;font-size:calc(21px * var(--fs)
         <div class="companion-say"><div class="cs-avatar">🤖</div><div class="cs-text">분석해봤어요. 하나씩 같이 살펴볼게요.</div></div>
         <span class="reason-badge" id="freeSourceBadge" style="margin-bottom:16px;"></span>
 
+        <!-- 안내 — 복사하기 전에 보이도록 결과 상단에 고정 배치 -->
+        <div class="use-notice" id="freeUseNotice"></div>
+
         <div class="companion-say hidden" id="freeFollowupBox" style="background:var(--p2-l);">
           <div class="cs-avatar">🤖</div>
           <div style="flex:1;">
             <div class="cs-text" id="freeFollowupQuestion"></div>
             <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-              <input id="freeFollowupInput" placeholder="여기에 답해주세요" style="flex:1;min-width:180px;min-height:44px;padding:0 14px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:calc(15px * var(--fs));">
+              <input id="freeFollowupInput" placeholder="여기에 답해주세요" style="flex:1;min-width:180px;min-height:54px;padding:0 14px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:calc(15px * var(--fs));">
+              <!-- 되묻기 칸에도 동일한 음성 입력 제공 (모든 입력창에서 일관된 UX) -->
+              <button type="button" class="mic-btn hidden" id="followupMicBtn" onclick="toggleVoiceInput('freeFollowupInput', this)" title="말로 답하기" aria-label="말로 답하기">🎤</button>
               <button class="btn-secondary" onclick="handleFollowupAnswer()">답하고 다시 분석하기</button>
             </div>
           </div>
@@ -1248,6 +1302,47 @@ const COURSE_EXAMPLES = {
      text:'당신은 앱 기획 전문가입니다.\n\n아래 아이디어를 실제 기획안으로 정리해주세요.\n\n해결하려는 문제: 약을 여러 개 먹는 어르신이 복용 시간을 자주 잊어버림\n사용자: 65세 이상, 스마트폰은 전화와 카톡 정도만 사용\n핵심 기능\n- 약 먹을 시간에 크게 알림\n- 먹었는지 체크\n- 가족이 확인할 수 있는 기능\n\n출력 형식\n- 기획 의도 / 주요 기능 3가지 / 화면 구성 / 개발 시 주의점 순서\n- 개발자에게 그대로 보여줄 수 있는 수준으로'}
   ]
 };
+
+/* ===== 생활 주제 카드 =====
+   "무엇을 물어봐야 할지 모르겠다"는 실사용 피드백에서 나온 기능입니다.
+   기존 코스(PPT·번역 등)가 "결과물 만들기"라면, 이쪽은 "알아보기·결정하기"입니다.
+   카드 → 예시 질문 2단계로, 타이핑 없이 두 번만 눌러도 질문이 완성됩니다.
+   notice: 결과 화면에 함께 띄울 안내 (없으면 공통 안내만 표시) */
+const TOPIC_CARDS = [
+  {id:'hobby', icon:'🥾', name:'취미·장비',
+   examples:['등산화 고르기','아이스클라이밍 장비 추천','계절별 등산 준비물']},
+
+  {id:'house', icon:'🧹', name:'집안일·청소',
+   examples:['배수구 청소 쉽게 하는 법','화장실 곰팡이 없애는 법','바닥 청소 편하게 하는 법']},
+
+  {id:'money', icon:'💰', name:'주식·경제',
+   examples:['투자 가치 있는 회사 고르는 방법','주식 용어 쉽게 알기','요즘 경제 흐름 이해하기'],
+   notice:'투자 판단은 본인의 몫이에요. 이 답변을 참고 자료로 삼되, 실제 투자 전에 꼭 직접 확인하고 전문가와 상담하세요.'},
+
+  {id:'news', icon:'📰', name:'뉴스 이해',
+   examples:['오늘 뉴스 쉽게 설명','어려운 시사 용어 풀이','기사 요약해주기'],
+   notice:'AI는 최신 뉴스를 모를 수 있어요. 날짜와 사실관계는 꼭 직접 확인해주세요.'},
+
+  {id:'health', icon:'💊', name:'건강 정보',
+   examples:['무릎 건강 관리법','영양제 고르는 기준','운동 전 준비 방법'],
+   notice:'이 답변을 들고 의사·약사와 상담하시면 더 정확해요. 진단과 처방은 전문가의 영역이에요.'},
+
+  {id:'life', icon:'🌡️', name:'생활 궁금증',
+   examples:['더위 이기는 방법','전기요금 줄이는 법','벌레 없애는 법']},
+
+  {id:'docs', icon:'📋', name:'서류·행정',
+   examples:['관공서 서류 작성법','온라인 신청 방법','필요한 서류 확인하기'],
+   notice:'서류 양식은 기관마다 달라요. 제출 전에 꼭 해당 기관에 확인해주세요.'},
+
+  {id:'buy', icon:'🛒', name:'물건 고르기',
+   examples:['가전제품 고르는 기준','가격 비교하는 법','후기 판단하는 법']},
+
+  {id:'phone', icon:'📱', name:'스마트폰',
+   examples:['사진 정리하는 법','글씨 크게 만들기','앱 설치하는 법']}
+];
+
+// 모든 결과 화면에 항상 표시되는 공통 안내
+const COMMON_NOTICE = '마지막 확인은 사람이 해요. 중요한 내용은 꼭 직접 검토해주세요.';
 
 const CONSTRAINT_FIELD_IDS = ['length','pace','tone','lang','slides','when','budget'];
 
@@ -1940,6 +2035,10 @@ function freeCoachGoto(step){
   document.getElementById('freeCoachStep'+step).classList.add('active');
 }
 function startFreeCoach(){
+  // 카드에서 온 경우에만 주제를 유지하고, 직접 입력해서 시작하면 이전 주제를 지웁니다.
+  // (건강 카드로 한 번 물어본 뒤 다른 질문을 했는데 건강 안내가 계속 뜨는 것을 막기 위함)
+  if(freeCoachCtx.fromTopicCard){ freeCoachCtx.fromTopicCard = false; }
+  else { freeCoachCtx.topicId = null; }
   const input = document.getElementById('freeCoachInput').value.trim();
   if(!input) return;
   freeCoachCtx.inputText = input;
@@ -2167,6 +2266,15 @@ function renderFreeCoachResult(result, source){
     badge.style.background = 'var(--p2-l)'; badge.style.color = 'var(--gold)';
   }
 
+  // 안내 문구 — 공통은 항상, 주제별(건강/투자/서류 등)은 해당 주제일 때만 추가로 표시
+  const noticeEl = document.getElementById('freeUseNotice');
+  if(noticeEl){
+    const topic = TOPIC_CARDS.find(t=>t.id === freeCoachCtx.topicId);
+    const lines = [COMMON_NOTICE];
+    if(topic && topic.notice) lines.unshift(topic.notice); // 주제별 안내를 먼저
+    noticeEl.innerHTML = lines.map(t=>`<p class="un-line"><span class="un-mark">✔️</span>${t}</p>`).join('');
+  }
+
   // 추가 질문 (AI가 더 물어보고 싶은 것 — API 모드에서만 존재할 수 있음)
   const followupBox = document.getElementById('freeFollowupBox');
   if(result.questionIfNeeded){
@@ -2251,6 +2359,61 @@ function renderFreeCoachResult(result, source){
 
   freeCoachGoto(3);
 }
+
+/* ================= 생활 주제 카드 ================= */
+
+function renderTopicCards(){
+  const grid = document.getElementById('topicGrid');
+  if(!grid) return;
+  grid.innerHTML = TOPIC_CARDS.map(t=>`
+    <button type="button" class="topic-card" onclick="openTopicExamples('${t.id}')">
+      <span class="tc-icon">${t.icon}</span>
+      <span class="tc-name">${t.name}</span>
+    </button>`).join('');
+}
+
+function openTopicExamples(topicId){
+  const t = TOPIC_CARDS.find(x=>x.id===topicId);
+  if(!t) return;
+  document.getElementById('topicGrid').classList.add('hidden');
+  document.getElementById('topicExamplesTitle').innerHTML =
+    `<b>${t.icon} ${t.name}</b> — 이런 걸 물어보실 수 있어요`;
+  document.getElementById('topicExamplesList').innerHTML =
+    t.examples.map(q=>`
+      <button type="button" class="topic-example" onclick="pickTopicExample('${t.id}', ${JSON.stringify(q).replace(/"/g,'&quot;')})">
+        ${q}
+      </button>`).join('') +
+    `<button type="button" class="topic-example te-custom" onclick="pickTopicCustom('${t.id}')">
+       ✏️ 직접 입력할게요
+     </button>`;
+  document.getElementById('topicExamples').classList.remove('hidden');
+}
+
+function closeTopicExamples(){
+  document.getElementById('topicExamples').classList.add('hidden');
+  document.getElementById('topicGrid').classList.remove('hidden');
+}
+
+// 예시 질문을 고르면 입력창을 채우고 바로 코치를 시작합니다 (타이핑 불필요)
+function pickTopicExample(topicId, question){
+  freeCoachCtx.topicId = topicId;   // 결과 화면 안내 문구를 고르는 데 사용
+  freeCoachCtx.fromTopicCard = true;
+  document.getElementById('freeCoachInput').value = question;
+  closeTopicExamples();
+  startFreeCoach();
+}
+
+// 주제만 정하고 질문은 직접 쓰고 싶은 경우
+function pickTopicCustom(topicId){
+  freeCoachCtx.topicId = topicId;
+  freeCoachCtx.fromTopicCard = true;   // 주제는 골랐으므로 안내 문구는 유지
+  closeTopicExamples();
+  const input = document.getElementById('freeCoachInput');
+  input.focus();
+  input.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+renderTopicCards();
 
 /* ================= 마이페이지: 사용 내역 / 저장된 프롬프트 =================
    서버(DB)에 연결되고 로그인된 상태에서만 화면에 나타납니다.
@@ -2680,8 +2843,10 @@ function initVoiceInput(){
 
   // 자유 연습장 첫 입력창의 마이크는 페이지 로드시 이미 HTML에 있던 버튼이라
   // (다른 마이크들처럼 micBtnHTML()로 즉석 생성되지 않음) 여기서 한 번만 보여줍니다.
-  const staticBtn = document.getElementById('micBtn');
-  if(staticBtn) staticBtn.classList.remove('hidden');
+  ['micBtn','followupMicBtn'].forEach(id=>{
+    const b = document.getElementById(id);
+    if(b) b.classList.remove('hidden');
+  });
 
   recognition = new SpeechRecognitionAPI();
   recognition.lang = 'ko-KR';        // 지정하지 않으면 영어로 인식하려 합니다
