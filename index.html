@@ -2236,8 +2236,10 @@ async function freeCoachBuild(){
   freeCoachCtx.lastAnswers = answers;
 
   freeCoachGoto('Loading');
-  document.getElementById('freeCoachPanel').scrollIntoView({behavior:'smooth', block:'start'});
   startLoadingMessages();
+  // 로딩 영역 자체를 화면 가운데로 — 패널 상단에 맞추면 안내 문구와 진행 막대가
+  // 화면 아래로 밀려나 "아무 변화가 없다"고 느끼게 됩니다 (실사용에서 확인된 문제).
+  document.getElementById('freeCoachStepLoading').scrollIntoView({behavior:'smooth', block:'center'});
 
   let common, source;
   try{
