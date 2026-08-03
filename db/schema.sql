@@ -34,11 +34,16 @@ CREATE TABLE IF NOT EXISTS prompt_coach_history (
   score           INTEGER,
   -- {clarity, context, output_condition, detail, role} — 각 0~20
   score_breakdown JSONB,
+  -- 로그인하지 않은 방문자의 연속 사용을 묶기 위한 임의 문자열.
+  -- 개인을 식별하는 값이 아니며, 브라우저에서 무작위로 생성합니다.
+  -- (이 값이 없으면 익명 기록 30건이 1명이 30번 쓴 것인지 30명이 1번씩 쓴 것인지 알 수 없습니다.)
+  session_id      VARCHAR(40),
   created_at      TIMESTAMP DEFAULT NOW()
 );
 
--- 이미 테이블을 만들어 둔 뒤에 reason 컬럼을 추가하는 경우 (기존 DB 마이그레이션):
+-- 이미 테이블을 만들어 둔 뒤 컬럼을 추가하는 경우 (기존 DB 마이그레이션):
 --   ALTER TABLE prompt_coach_history ADD COLUMN IF NOT EXISTS reason TEXT;
+--   ALTER TABLE prompt_coach_history ADD COLUMN IF NOT EXISTS session_id VARCHAR(40);
 
 -- 마이페이지에서 "내 기록을 최신순으로" 조회하는 것이 가장 잦은 질의라,
 -- 그 조합에 맞춰 인덱스를 만들어 둡니다.
