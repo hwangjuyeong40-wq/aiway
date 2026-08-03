@@ -286,6 +286,8 @@ footer p.strong{color:var(--ink);font-weight:700;font-size:calc(21px * var(--fs)
 .pattern-hint .ph-items{font-size:calc(18px * var(--fs));color:var(--gold);font-weight:700;letter-spacing:.5px;}
 /* 로딩 중임을 확실히 보여주는 진행 막대 — 정확한 %는 알 수 없어 슬라이딩 형태로 표시합니다 */
 .loading-bar{width:100%;max-width:360px;height:10px;border-radius:999px;background:var(--ivory-deep);border:1px solid var(--line);overflow:hidden;margin:18px auto 4px;}
+.privacy-note{font-size:calc(14px * var(--fs));color:var(--ink-soft);background:var(--ivory-deep);border-radius:var(--radius-sm);padding:12px 14px;margin:18px 0 0;line-height:1.6;}
+.privacy-note b{color:var(--ink);}
 .loading-hint{text-align:center;font-size:calc(14.5px * var(--fs));color:var(--ink-soft);margin:10px 0 0;}
 .loading-bar-fill{width:40%;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--sky),var(--leaf));animation:loadingSlide 1.3s ease-in-out infinite;}
 /* 마이페이지 사용 내역 / 저장된 프롬프트 카드 */
@@ -646,6 +648,8 @@ footer p.strong{color:var(--ink);font-weight:700;font-size:calc(21px * var(--fs)
           <button class="mic-btn hidden" id="micBtn" onclick="toggleVoiceInput('freeCoachInput', this)" title="말로 입력하기" aria-label="말로 입력하기">🎤</button>
         </div>
         <p class="mic-status hidden" id="micStatus"></p>
+        <!-- 데이터 수집 안내는 분석을 시작하기 전에 보이는 것이 맞아 시작 버튼 위에 둡니다 -->
+        <p class="privacy-note">🔒 만드신 프롬프트는 서비스 개선을 위해 <b>익명으로</b> 저장돼요. 누가 만들었는지는 저장되지 않습니다.</p>
         <div class="coach-nav"><button class="btn-primary" onclick="startFreeCoach()">✨ 코치 시작하기</button></div>
 
         <!-- 무엇을 물어볼지 모르는 사용자를 위한 주제 카드 (2단계: 주제 → 예시 질문) -->
@@ -2531,17 +2535,45 @@ async function deleteSavedPrompt(id){
    로그인 + 서버(DB) 연결이 모두 되어 있을 때만 동작합니다.
    둘 중 하나라도 없으면 조용히 넘어가고, Prompt Coach 본 기능에는 영향을 주지 않습니다. */
 
+/* 기록 남기기와 "저장하기"는 조건이 다릅니다.
+   - 기록: 로그인하지 않아도 남깁니다(익명). 가입 없이 쓸 수 있는 서비스라,
+           로그인한 사람만 기록하면 실제 사용의 대부분이 집계에서 빠집니다.
+   - 저장/조회: 내 것을 다시 보는 기능이므로 로그인이 필요합니다. */
+function canRecordHistory(){
+  return !!API_BASE_URL; // 서버 주소만 있으면 시도 (실패해도 조용히 넘어감)
+}
 function canUseHistory(){
   return !!(authToken && serverAuthAvailable && currentUser);
 }
 
+/* 같은 방문자의 연속 사용을 묶기 위한 임의 문자열.
+   개인을 식별하는 값이 아니며(이름·기기 정보 등 아무것도 담기지 않음),
+   이 값이 없으면 익명 기록 30건이 1명의 30회인지 30명의 1회인지 알 수 없습니다. */
+const SESSION_KEY = 'aiway_session';
+let sessionId = null;
+function getSessionId(){
+  if(sessionId) return sessionId;
+  try{
+    sessionId = localStorage.getItem(SESSION_KEY);
+    if(!sessionId){
+      sessionId = 's-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+      localStorage.setItem(SESSION_KEY, sessionId);
+    }
+  }catch(e){
+    // 저장소가 막힌 브라우저(사파리 시크릿 등)에서는 이번 방문에만 쓰는 값을 만듭니다.
+    sessionId = 's-tmp-' + Math.random().toString(36).slice(2, 10);
+  }
+  return sessionId;
+}
+
 // Prompt Coach를 쓸 때마다 자동으로 서버에 기록을 남깁니다.
 async function recordHistory(result){
-  if(!canUseHistory()) return null;
+  if(!canRecordHistory()) return null;
   try{
     const res = await authFetch('/api/history', {
       method:'POST',
       body: JSON.stringify({
+        sessionId: getSessionId(),
         category: freeCoachCtx.category,
         rawInput: freeCoachCtx.inputText,
         improvedPrompt: result.improved,
