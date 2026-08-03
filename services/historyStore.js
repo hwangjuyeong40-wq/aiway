@@ -10,14 +10,17 @@ const db = require('../db');
 // ── 사용 내역 ────────────────────────────────
 
 // Prompt Coach를 쓸 때마다 자동으로 한 줄 쌓입니다.
-async function saveHistory({ userId, category, rawInput, improvedPrompt, reason, score, scoreBreakdown }) {
-  if (!db.isEnabled() || !userId) return null;
+// userId는 없어도 됩니다(로그인하지 않은 방문자). 이 경우 NULL로 저장되고,
+// sessionId만으로 "같은 방문자의 연속 사용"을 묶습니다.
+async function saveHistory({ userId, sessionId, category, rawInput, improvedPrompt, reason, score, scoreBreakdown }) {
+  if (!db.isEnabled()) return null;
   const res = await db.query(
     `INSERT INTO prompt_coach_history
-       (user_id, category, raw_input, improved_prompt, reason, score, score_breakdown)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+       (user_id, session_id, category, raw_input, improved_prompt, reason, score, score_breakdown)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING id, created_at`,
-    [userId, category || null, rawInput, improvedPrompt, reason || null, score ?? null, scoreBreakdown || null]
+    [userId || null, sessionId || null, category || null, rawInput, improvedPrompt,
+     reason || null, score ?? null, scoreBreakdown || null]
   );
   return res ? res.rows[0] : null;
 }
