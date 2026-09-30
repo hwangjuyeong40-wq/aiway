@@ -544,44 +544,10 @@ header.site{border-bottom:1px solid var(--line);}
 /* 홈 하단 — Prompt Coach로 가는 문. 핵심 기능이라 옅은 초록 바탕으로 구분 */
 .home-coach-cta{background:var(--leaf-l);border-color:#CFDDD2;}
 
-/* 자유 연습장 헤더 — 기존 화면의 초록색 제목 박스 유지 */
-.free-coach-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  min-height:calc(82px * var(--fs));
-  padding:calc(12px * var(--fs)) calc(16px * var(--fs));
-  margin-bottom:14px;
-  border-radius:10px;
-  background:var(--leaf-dark);
-  color:#fff;
-}
-.free-coach-header-text{min-width:0;}
-.free-coach-title{
-  margin:0 0 5px;
-  font-weight:800;
-  font-size:calc(19px * var(--fs));
-  line-height:1.2;
-}
-.free-coach-sub{
-  margin:0;
-  color:rgba(255,255,255,.82);
-  font-size:calc(13px * var(--fs));
-  line-height:1.35;
-}
-.free-coach-header-bird{
-  flex:0 0 auto;
-  width:calc(58px * var(--fs));
-  height:auto;
-  display:block;
-}
-@media (max-width:600px){
-  .free-coach-header{min-height:calc(74px * var(--fs));padding:calc(10px * var(--fs)) calc(13px * var(--fs));}
-  .free-coach-title{font-size:calc(17px * var(--fs));}
-  .free-coach-sub{font-size:calc(11px * var(--fs));}
-  .free-coach-header-bird{width:calc(50px * var(--fs));}
-}
+/* 자유 연습장 — 쉬고 있는 동행이 */
+.free-coach-titlebar{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#4D735B;border-radius:12px;padding:14px 18px;margin-bottom:14px;color:#fff;}
+.free-coach-titlebar p{color:inherit!important;}
+.free-coach-resting-bird{width:calc(58px * var(--fs));height:auto;flex:none;}
 
 /* 동행이 말풍선 — 파란 말풍선 대신 흰 종이 */
 .companion-say{background:var(--card);border:1px solid var(--line);}
@@ -822,12 +788,12 @@ h1,h2,h3,p,button,.cat-title,.cat-desc,.sc-sub,.gs-desc,.problem-line,.solution-
     <div class="level-stepper" id="levelStepper" style="margin-bottom:30px;"></div>
 
     <div class="panel" id="freeCoachPanel">
-      <div class="free-coach-header">
-        <div class="free-coach-header-text">
-          <p class="free-coach-title">Prompt Coach 자유 연습장</p>
-          <p class="free-coach-sub">주제 상관없이 아무거나 물어보세요. 동행이가 되물으며 함께 다듬어드려요.</p>
+      <div class="free-coach-titlebar">
+        <div>
+          <p style="font-weight:700;font-size:calc(19px * var(--fs));margin:0 0 6px;">Prompt Coach 자유 연습장</p>
+          <p style="color:rgba(255,255,255,.82);margin:0;">주제 상관없이 아무거나 물어보세요. 동행이가 되물으며 함께 다듬어드려요.</p>
         </div>
-        <img class="free-coach-header-bird" src="data:image/webp;base64,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" alt="동행이">
+        <img src="'+DH_REST+'" alt="쉬고 있는 동행이" class="free-coach-resting-bird">
       </div>
 
       <div class="coach-step active" id="freeCoachStep1">
@@ -2807,49 +2773,26 @@ function getSessionId(){
 
 // Prompt Coach를 쓸 때마다 자동으로 서버에 기록을 남깁니다.
 async function recordHistory(result){
-  if(!result){
-    console.warn('[AIWAY DB] 저장할 결과가 없습니다.');
-    return null;
-  }
-
-  const payload = {
-    sessionId: getSessionId(),
-    category: freeCoachCtx.category || null,
-    rawInput: freeCoachCtx.inputText || '',
-    improvedPrompt: result.improved || '',
-    reason: result.why || null,
-    score: result.overall != null ? Number(result.overall) : null,
-    scoreBreakdown: result.dims
-      ? result.dims.reduce((obj,d)=>{
-          if(d && d.key && d.v != null) obj[d.key] = Number(d.v);
-          return obj;
-        }, {})
-      : null
-  };
-
-  console.log('[AIWAY DB] 저장 요청:', payload);
-
+  if(!canRecordHistory()) return null;
   try{
-    const response = await fetch('https://aiway.onrender.com/api/history', {
+    const res = await authFetch('/api/history', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
+      body: JSON.stringify({
+        sessionId: getSessionId(),
+        category: freeCoachCtx.category,
+        rawInput: freeCoachCtx.inputText,
+        improvedPrompt: result.improved,
+        reason: result.why || null,
+        score: result.overall,
+        scoreBreakdown: result.dims
+          ? result.dims.reduce((o,d)=>{ o[d.key]=d.v; return o; }, {})
+          : null
+      })
     });
-
-    let data = null;
-    try{ data = await response.json(); }catch(e){ data = null; }
-
-    console.log('[AIWAY DB] 서버 응답:', response.status, data);
-
-    if(!response.ok){
-      console.error('[AIWAY DB] 저장 실패:', response.status, data);
-      return null;
-    }
-
-    console.log('[AIWAY DB] 저장 성공! ID:', data && data.id);
-    return data && data.id ? data.id : null;
+    return res.ok && res.data ? res.data.id : null;
   }catch(err){
-    console.error('[AIWAY DB] 서버 연결 실패:', err);
+    // 기록 실패가 사용자 경험을 방해하면 안 됩니다.
+    console.warn('[기록] 저장 실패:', err.message);
     return null;
   }
 }
