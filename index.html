@@ -544,10 +544,18 @@ header.site{border-bottom:1px solid var(--line);}
 /* 홈 하단 — Prompt Coach로 가는 문. 핵심 기능이라 옅은 초록 바탕으로 구분 */
 .home-coach-cta{background:var(--leaf-l);border-color:#CFDDD2;}
 
-/* 자유 연습장 — 쉬고 있는 동행이 */
-.free-coach-titlebar{display:flex;align-items:center;justify-content:space-between;gap:18px;background:#4D735B;border-radius:12px;padding:14px 18px;margin-bottom:14px;color:#fff;}
-.free-coach-titlebar p{color:inherit!important;}
-.free-coach-resting-bird{width:calc(58px * var(--fs));height:auto;flex:none;}
+/* Prompt Coach 자유 연습장 제목 상자 — 핵심 기능이라 초록 상자로 구분 */
+.coach-title-box{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--leaf);color:#fff;border-radius:var(--radius-sm);padding:22px 24px 18px;margin:-4px 0 24px;}
+.coach-title-box p{color:inherit;}
+.ctb-text{min-width:0;}
+.ctb-title{margin:0 0 6px;font-weight:900;font-size:calc(28px * var(--fs));line-height:1.3;color:#fff;word-break:keep-all;}
+.ctb-sub{margin:0;font-weight:500;font-size:calc(17px * var(--fs));line-height:1.6;color:#E6EFE8;word-break:keep-all;}
+.ctb-bird{flex:none;width:calc(84px * var(--fs));height:auto;margin:-10px -4px -12px 0;}
+@media (max-width:520px){
+  .coach-title-box{padding:18px 18px 16px;}
+  .ctb-title{font-size:calc(23px * var(--fs));}
+  .ctb-bird{width:calc(64px * var(--fs));}
+}
 
 /* 동행이 말풍선 — 파란 말풍선 대신 흰 종이 */
 .companion-say{background:var(--card);border:1px solid var(--line);}
@@ -788,12 +796,14 @@ h1,h2,h3,p,button,.cat-title,.cat-desc,.sc-sub,.gs-desc,.problem-line,.solution-
     <div class="level-stepper" id="levelStepper" style="margin-bottom:30px;"></div>
 
     <div class="panel" id="freeCoachPanel">
-      <div class="free-coach-titlebar">
-        <div>
-          <p style="font-weight:700;font-size:calc(19px * var(--fs));margin:0 0 6px;">Prompt Coach 자유 연습장</p>
-          <p style="color:rgba(255,255,255,.82);margin:0;">주제 상관없이 아무거나 물어보세요. 동행이가 되물으며 함께 다듬어드려요.</p>
+      <!-- 핵심 기능이라 제목을 초록 상자로 구분하고, 쉬어가는 동행이를 옆에 둡니다.
+           이미지 주소는 화면이 뜬 뒤 JS가 DH_REST 값으로 채웁니다(아래 DOMContentLoaded). -->
+      <div class="coach-title-box">
+        <div class="ctb-text">
+          <p class="ctb-title">Prompt Coach 자유 연습장</p>
+          <p class="ctb-sub">주제 상관없이 아무거나 물어보세요. 동행이가 되물으며 함께 다듬어드려요.</p>
         </div>
-        <img src="'+DH_REST+'" alt="쉬고 있는 동행이" class="free-coach-resting-bird">
+        <img class="dh ctb-bird" src="" data-dh="rest" alt="" aria-hidden="true">
       </div>
 
       <div class="coach-step active" id="freeCoachStep1">
@@ -1216,6 +1226,7 @@ function paintStaticIcons(){
   });
 }
 document.addEventListener('DOMContentLoaded', paintStaticIcons);
+document.addEventListener('DOMContentLoaded', ()=>{ document.querySelectorAll('img[data-dh="rest"]').forEach(el=>{ el.src = DH_REST; }); });
 
 /* ================= Data ================= */
 const COURSES = [
