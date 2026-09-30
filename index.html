@@ -601,18 +601,6 @@ h1,h2,h3,p,button,.cat-title,.cat-desc,.sc-sub,.gs-desc,.problem-line,.solution-
   .hero-card{padding:32px 22px;}
   .section-head h2{font-size:calc(26px * var(--fs));}
 }
-
-/* Prompt Coach 자유 연습장 제목 상자 — 핵심 기능 강조 */
-.coach-title-box{display:flex;align-items:center;justify-content:space-between;gap:16px;background:var(--leaf);color:#fff;border-radius:var(--radius-sm);padding:22px 24px 18px;margin:-4px 0 24px;}
-.ctb-text{min-width:0;}
-.ctb-title{margin:0 0 6px;font-weight:900;font-size:calc(28px * var(--fs));line-height:1.3;color:#fff;word-break:keep-all;}
-.ctb-sub{margin:0;font-weight:500;font-size:calc(17px * var(--fs));line-height:1.6;color:#E6EFE8;word-break:keep-all;}
-.ctb-bird{flex:none;width:calc(84px * var(--fs));height:auto;margin:-10px -4px -12px 0;}
-@media (max-width:520px){
-  .coach-title-box{padding:18px 18px 16px;}
-  .ctb-title{font-size:calc(23px * var(--fs));}
-  .ctb-bird{width:calc(64px * var(--fs));}
-}
 </style>
 
 <!-- Reusable inline SVG symbols for high-fidelity mockups -->
@@ -795,14 +783,8 @@ h1,h2,h3,p,button,.cat-title,.cat-desc,.sc-sub,.gs-desc,.problem-line,.solution-
     <div class="level-stepper" id="levelStepper" style="margin-bottom:30px;"></div>
 
     <div class="panel" id="freeCoachPanel">
-      <!-- 핵심 기능이라 제목을 초록 상자로 구분하고, 쉬어가는 동행이를 옆에 둡니다 -->
-      <div class="coach-title-box">
-        <div class="ctb-text">
-          <p class="ctb-title">Prompt Coach 자유 연습장</p>
-          <p class="ctb-sub">주제 상관없이 아무거나 물어보세요. 동행이가 되물으며 함께 다듬어드려요.</p>
-        </div>
-        <img class="dh ctb-bird" src="" data-dh="rest" alt="" aria-hidden="true">
-      </div>
+      <p style="font-weight:700;font-size:calc(19px * var(--fs));margin-bottom:6px;">Prompt Coach 자유 연습장</p>
+      <p style="color:var(--ink-soft);margin:0 0 20px;">주제 상관없이 아무거나 물어보세요. 동행이가 되물으며 함께 다듬어드려요.</p>
 
       <div class="coach-step active" id="freeCoachStep1">
         <div class="companion-say"><div class="cs-text">같이 하나씩 만들어볼까요? 걱정하지 마세요, 제가 하나씩 도와드릴게요.</div></div>
@@ -1224,7 +1206,6 @@ function paintStaticIcons(){
   });
 }
 document.addEventListener('DOMContentLoaded', paintStaticIcons);
-document.addEventListener('DOMContentLoaded', ()=>{ document.querySelectorAll('img[data-dh="rest"]').forEach(el=>{ el.src = DH_REST; }); });
 
 /* ================= Data ================= */
 const COURSES = [
@@ -2782,26 +2763,97 @@ function getSessionId(){
 
 // Prompt Coach를 쓸 때마다 자동으로 서버에 기록을 남깁니다.
 async function recordHistory(result){
-  if(!canRecordHistory()) return null;
+
+  if(!result){
+    console.warn('[AIWAY DB] 저장할 결과가 없습니다.');
+    return null;
+  }
+
+  const payload = {
+    sessionId: getSessionId(),
+
+    category: freeCoachCtx.category || null,
+
+    rawInput: freeCoachCtx.inputText || '',
+
+    improvedPrompt: result.improved || '',
+
+    reason: result.why || null,
+
+    score:
+      result.overall != null
+        ? Number(result.overall)
+        : null,
+
+    scoreBreakdown:
+      result.dims
+        ? result.dims.reduce((obj, d) => {
+            if(d && d.key && d.v != null){
+              obj[d.key] = Number(d.v);
+            }
+            return obj;
+          }, {})
+        : null
+  };
+
+  console.log('[AIWAY DB] 저장 요청:', payload);
+
   try{
-    const res = await authFetch('/api/history', {
-      method:'POST',
-      body: JSON.stringify({
-        sessionId: getSessionId(),
-        category: freeCoachCtx.category,
-        rawInput: freeCoachCtx.inputText,
-        improvedPrompt: result.improved,
-        reason: result.why || null,
-        score: result.overall,
-        scoreBreakdown: result.dims
-          ? result.dims.reduce((o,d)=>{ o[d.key]=d.v; return o; }, {})
-          : null
-      })
-    });
-    return res.ok && res.data ? res.data.id : null;
+
+    const response = await fetch(
+      'https://aiway.onrender.com/api/history',
+      {
+        method: 'POST',
+
+        headers: {
+          'Content-Type': 'application/json'
+        },
+
+        body: JSON.stringify(payload)
+      }
+    );
+
+    let data = null;
+
+    try{
+      data = await response.json();
+    }catch(e){
+      data = null;
+    }
+
+    console.log(
+      '[AIWAY DB] 서버 응답:',
+      response.status,
+      data
+    );
+
+    if(!response.ok){
+
+      console.error(
+        '[AIWAY DB] 저장 실패:',
+        response.status,
+        data
+      );
+
+      return null;
+    }
+
+    console.log(
+      '[AIWAY DB] 저장 성공! ID:',
+      data && data.id
+    );
+
+    return data && data.id
+      ? data.id
+      : null;
+
   }catch(err){
-    // 기록 실패가 사용자 경험을 방해하면 안 됩니다.
-    console.warn('[기록] 저장 실패:', err.message);
+
+    console.error(
+      '[AIWAY DB] 서버 연결 실패:',
+      err
+    );
+
     return null;
   }
 }
