@@ -82,6 +82,12 @@ ADMIN_PIN=....
 
 **[ARCHITECTURE.md](./ARCHITECTURE.md)** — 만든 이유, 설계 결정, 보안, DB 구조, 실사용자 피드백 반영 사례
 
+## 📚 Documentation
+
+- [Project Story](./STORY.md)
+- [Design Process](./DESIGN.md)
+- [Architecture](./ARCHITECTURE.md)
+
 ---
 
 <div align="center">
