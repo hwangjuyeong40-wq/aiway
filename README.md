@@ -86,11 +86,8 @@ npm start
 
 ---
 
-## 더 보기
 
-[ARCHITECTURE.md](./ARCHITECTURE.md) — 시스템 구조와 기술 설계
-
-## 📚 문서
+## 📚 문서 
 
 - [사이트 바로가기](https://hwangjuyeong40-wq.github.io/aiway/)
 - [아키텍처](./ARCHITECTURE.md) — 시스템 구조와 기술 설계
