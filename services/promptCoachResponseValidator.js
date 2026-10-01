@@ -67,6 +67,14 @@ function normalizeScoreBreakdown(value) {
   return result;
 }
 
+// "AI가 항목을 아예 안 줬다"와 "AI가 항목을 전부 0점으로 줬다"를 구분합니다.
+// 합계로 판단하면 둘 다 0이 되어, 정당한 0점짜리 프롬프트가 기본값 70점으로 둔갑합니다.
+// 그래서 숫자로 해석 가능한 항목이 하나라도 들어왔는지를 기준으로 삼습니다.
+function hasScoreBreakdown(value) {
+  if (!value || typeof value !== 'object') return false;
+  return DIM_KEYS.some((key) => Number.isFinite(Number(value[key])));
+}
+
 // changes는 {tag, dimension} 형태를 기대하지만, AI가 예전처럼 문자열만 줄 수도 있습니다.
 // 두 경우 모두 받아서 항상 {tag, dimension} 객체 배열로 통일합니다.
 function normalizeChanges(value) {
@@ -106,9 +114,10 @@ function validateAndNormalize(raw) {
   // 총점은 AI가 준 score를 그대로 믿지 않고, 5개 항목을 서버가 직접 합산해서 씁니다.
   // (AI가 항목 점수와 총점을 다르게 내는 경우가 실제로 생깁니다.)
   const score_breakdown = normalizeScoreBreakdown(raw.score_breakdown);
+  // 항목이 하나라도 들어왔으면 그 합계를 총점으로 씁니다.
+  // 항목이 전부 0점이어도 그대로 0점입니다(모호한 입력은 실제로 0점에 가까울 수 있습니다).
+  const hasBreakdown = hasScoreBreakdown(raw.score_breakdown);
   const breakdownTotal = DIM_KEYS.reduce((sum, k) => sum + score_breakdown[k], 0);
-  // 항목이 전부 0이면 AI가 score_breakdown 자체를 안 준 것으로 보고, 기존 score를 사용합니다.
-  const hasBreakdown = breakdownTotal > 0;
   const score = hasBreakdown ? breakdownTotal : clampInt(raw.score, 0, 100, 70);
 
   const level = VALID_LEVELS.includes(raw.level)
