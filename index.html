@@ -1659,41 +1659,8 @@ function buildFreeAnalysis(category, rawInput, answers){
     dimension: FIELD_DIMENSION[f.id] || null
   }));
 
-  // ===== 점수 산출: 5개 항목 × 20점 = 100점 (SCORE_DIMENSIONS 기준) =====
-  const ratioOf = ids => {
-    const target = fields.filter(f=>ids.includes(f.id));
-    if(!target.length) return null; // 이 카테고리엔 해당 항목이 없음
-    return target.filter(f=>(answers[f.id]||'').trim()).length / target.length;
-  };
-  const filledRatio = fields.length ? filledFields.length/fields.length : 0;
-
-  // ① 명확성 — 원문이 한 가지 뜻으로 읽히는가 (길이·구체성으로 근사)
-  const len = rawInput.trim().length;
-  const clarity = len>=25 ? 19 : len>=15 ? 16 : len>=8 ? 12 : len>=4 ? 8 : 4;
-
-  // ② 맥락 — 상황·배경 정보가 제공됐는가
-  const ctxRatio = ratioOf(CONTEXT_FIELD_IDS);
-  const context = ctxRatio===null
-    ? Math.round(6 + filledRatio*10)          // 맥락 전용 질문이 없는 카테고리는 전체 응답률로 근사
-    : Math.round(4 + ctxRatio*16);
-
-  // ③ 출력 조건 — AIWAY 템플릿이 출력 형식을 항상 지정하므로 기본이 높고, 분량·톤 등 제약을 채우면 만점
-  const constRatio = ratioOf(CONSTRAINT_FIELD_IDS);
-  const output_condition = constRatio===null ? 16 : Math.round(14 + constRatio*6);
-
-  // ④ 세부 정보 — 수치·예시·제약이 얼마나 구체적으로 들어왔는가 (응답 채움 비율)
-  const detail = Math.round(3 + filledRatio*17);
-
-  // ⑤ 역할 부여 — AIWAY 템플릿이 항상 전문가 역할을 지정해줌
-  const role = 18;
-
-  const raw = {clarity, context, output_condition, detail, role};
-  const dims = SCORE_DIMENSIONS.map(d=>({
-    key: d.key,
-    label: d.label,
-    v: Math.max(0, Math.min(DIM_MAX, raw[d.key]))
-  }));
-  const overall = dims.reduce((a,d)=>a+d.v, 0); // 5개 합산 = 0~100
+  // ===== 점수 산출 — 코스와 동일한 공용 함수를 사용합니다 =====
+  const { dims, overall } = scoreDimensions(fields, answers, rawInput);
 
   const improved = course.template(finalAnswers);
   const stars = CATEGORY_AI_STARS[cat] || CATEGORY_AI_STARS.generic;
@@ -2011,17 +1978,75 @@ function openCourseCoach(){
 }
 // Simulated prompt evaluation — mirrors the score/level/strengths/weaknesses
 // shape the future Claude API backend will return (see STEP 2 design).
+/* ===== 공용 채점 =====
+   자유 연습장과 코스별 Prompt Coach가 같은 기준으로 채점하도록 한 곳에 모았습니다.
+   예전에는 코스 쪽만 "질문 칸을 몇 개 채웠는가"로 50~100점을 매겨,
+   같은 화면의 '점수'인데 기준이 서로 달랐습니다.
+   이제 두 곳 모두 SCORE_DIMENSIONS 5개 항목 × 20점 = 100점을 씁니다.
+
+   fields    : 질문 정의 배열
+   answers   : 사용자가 채운 답변
+   baseText  : 명확성 판단에 쓸 원문. 자유 연습장은 처음 입력한 문장,
+               코스는 답변을 이어 붙인 텍스트를 넘깁니다. */
+function scoreDimensions(fields, answers, baseText){
+  fields = fields || [];
+  answers = answers || {};
+  const filledFields = fields.filter(f=>(answers[f.id]||'').trim());
+  const filledRatio = fields.length ? filledFields.length/fields.length : 0;
+
+  const ratioOf = ids => {
+    const target = fields.filter(f=>ids.includes(f.id));
+    if(!target.length) return null;            // 이 카테고리엔 해당 항목이 없음
+    return target.filter(f=>(answers[f.id]||'').trim()).length / target.length;
+  };
+
+  // ① 명확성 — 요청이 한 가지 뜻으로 읽히는가 (길이·구체성으로 근사)
+  const len = (baseText||'').trim().length;
+  const clarity = len>=25 ? 19 : len>=15 ? 16 : len>=8 ? 12 : len>=4 ? 8 : 4;
+
+  // ② 맥락 — 상황·배경 정보가 제공됐는가
+  const ctxRatio = ratioOf(CONTEXT_FIELD_IDS);
+  const context = ctxRatio===null
+    ? Math.round(6 + filledRatio*10)           // 맥락 전용 질문이 없으면 전체 응답률로 근사
+    : Math.round(4 + ctxRatio*16);
+
+  // ③ 출력 조건 — AIWAY 템플릿이 출력 형식을 항상 지정하므로 기본이 높고,
+  //              분량·톤 같은 제약을 채우면 만점에 가까워집니다.
+  const constRatio = ratioOf(CONSTRAINT_FIELD_IDS);
+  const output_condition = constRatio===null ? 16 : Math.round(14 + constRatio*6);
+
+  // ④ 세부 정보 — 수치·예시·제약이 얼마나 구체적으로 들어왔는가
+  const detail = Math.round(3 + filledRatio*17);
+
+  // ⑤ 역할 부여 — AIWAY 템플릿이 항상 전문가 역할을 지정해줍니다.
+  const role = 18;
+
+  const raw = {clarity, context, output_condition, detail, role};
+  const dims = SCORE_DIMENSIONS.map(d=>({
+    key: d.key,
+    label: d.label,
+    v: Math.max(0, Math.min(DIM_MAX, raw[d.key]))
+  }));
+  return { dims, overall: dims.reduce((a,d)=>a+d.v, 0) };   // 5개 합산 = 0~100
+}
+
+function levelOf(score){
+  return score>=90 ? '전문가' : score>=70 ? '중급' : '입문';
+}
+
 function evaluatePrompt(fields, answers){
   const filled = fields.filter(f => (answers[f.id]||'').trim().length > 0);
-  const ratio = fields.length ? filled.length / fields.length : 0;
-  const score = Math.min(100, Math.round(50 + ratio*50));
-  const level = score>=90 ? '전문가' : score>=70 ? '중급' : '입문';
-  const strengths = filled.slice(0,3).map(f=>`"${f.label.replace(/\?$/,'')}"을(를) 구체적으로 알려주셨어요`);
+  // 명확성 판단용 원문: 코스에는 처음 입력한 문장이 없으므로 답변을 이어 붙여 씁니다.
+  const baseText = fields.map(f => (answers[f.id]||'').trim()).filter(Boolean).join(' ');
+  const { dims, overall } = scoreDimensions(fields, answers, baseText);
+  const score = overall;
+  const level = levelOf(score);
+  let strengths = filled.slice(0,3).map(f=>`"${f.label.replace(/\?$/,'')}"을(를) 구체적으로 알려주셨어요`);
   const empty = fields.filter(f => !(answers[f.id]||'').trim());
   let weaknesses = empty.slice(0,3).map(f=>`"${f.label.replace(/\?$/,'')}"을(를) 채우면 더 좋아요`);
   if(weaknesses.length===0) weaknesses = ['이미 충분히 구체적이에요. 예산이나 마감처럼 조건을 더 더해보면 완벽해요'];
   if(strengths.length===0) strengths = ['일단 시작하신 것만으로도 좋은 출발이에요'];
-  return {score, level, strengths, weaknesses};
+  return {score, level, strengths, weaknesses, dims};
 }
 function renderEvalCard(prefix, evalResult){
   document.getElementById(prefix+'EvalScore').textContent = evalResult.score;
