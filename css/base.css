@@ -1,0 +1,16 @@
+/* AIWAY — 기본 태그와 공통 레이아웃 */
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--ivory);
+  color:var(--ink); font-family:'Noto Sans KR',sans-serif; font-size:calc(21px * var(--fs)); font-weight:500; line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+}
+.display{font-family:'Gowun Dodum','Noto Sans KR',sans-serif;}
+button{font-family:inherit;cursor:pointer;}
+input{font-family:inherit;}
+:focus-visible{outline:3px solid var(--sky);outline-offset:3px;}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px;}
+.hidden{display:none !important;}
+.view{padding:36px 0 60px;}

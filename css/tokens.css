@@ -1,0 +1,23 @@
+/* AIWAY — 디자인 토큰 (색·모서리·그림자·글자 배율)
+   값 하나를 바꾸면 사이트 전체가 따라 바뀝니다. */
+
+:root{
+  /* 배경: 회기가 도는 따뜻한 흰색(B안) */
+  --ivory:#F5F5F2; --ivory-deep:#EEEDE9; --card:#FFFFFF;
+  --ink:#2B2721; --ink-soft:#66625C; --line:#E2E0DA;
+  /* 주 행동색: 짙은 숲 초록 — 흰 글씨 대비 6.1:1 (기존 2.9:1에서 개선) */
+  --leaf:#3F6B4E; --leaf-dark:#2F5D43; --leaf-l:#E8EFE9;
+  /* 링크·보조 행동도 초록 계열로 통일 (파란색은 AI 서비스 인상이 강해 제외) */
+  --sky:#2F5D43;
+  /* 머스터드: 로고 점선 색. 채움·강조용. 글씨에 쓸 땐 --gold(진한 버전) */
+  --mustard:#D4A017; --mustard-l:#FBF3DA; --gold:#8F6A00;
+  --red:#B5483A;
+  --radius-xl:24px; --radius-lg:20px; --radius-md:16px; --radius-sm:12px;
+  --shadow-soft:0 1px 2px rgba(43,39,33,0.05);
+  --shadow-pop:0 12px 32px -14px rgba(43,39,33,0.22);
+  --fs:1;
+  /* 점수 5항목·태그 전용 팔레트 — 채도를 낮춰 전체 톤에 맞춤 */
+  --p0:#4E9C8F; --p0-l:#E9F3F0; --p1:#5B86A8; --p1-l:#EAF0F5; --p2:#C9971F; --p2-l:#FBF4DF;
+  --p3:#5E9460; --p3-l:#ECF3EA; --p4:#C77B4A; --p4-l:#F8EDE4; --p5:#8A77A6; --p5-l:#F0ECF4;
+  --p6:#6A9CB8; --p6-l:#ECF2F5; --p7:#B87D8C; --p7-l:#F6ECEE;
+}
